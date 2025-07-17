@@ -40,36 +40,18 @@
         <h3 class="text-lg font-medium text-gray-900 mb-4">Herstelacties</h3>
         <div v-for="(actie, index) in form.acties" :key="index"
           class="mb-6 border border-dashed rounded-lg p-6 bg-white shadow-sm">
-          <div class="mb-4">
-            <label :for="`foto-${index}`" class="block text-sm font-medium text-gray-700 mb-2">Foto van de herstelactie {{ index + 1 }}</label>
-            <div class="flex flex-col sm:flex-row gap-4">
-              <div
-                class="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-brand-light-blue rounded-lg p-4 bg-brand-light-blue/20 text-center cursor-pointer hover:bg-brand-light-blue/40 transition">
-                <label :for="`foto-${index}`" class="w-full cursor-pointer">
-                  <svg class="mx-auto h-10 w-10 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 48 48">
-                    <path d="M14 32l10-10 10 10M24 22v14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                  </svg>
-                  <p class="mt-2 text-sm text-gray-600">Klik hier om een foto toe te voegen of te maken</p>
-                  <input :id="`foto-${index}`" type="file" accept="image/*" capture="environment" @change="onFileChange($event, index)" class="sr-only" />
-                </label>
-              </div>
-              <div v-if="actie.foto" class="mt-2">
-                <img :src="actie.foto" alt="Foto herstelactie" class="max-h-48 mx-auto rounded-md border" />
-              </div>
-            </div>
+          <label :for="`foto-${index}`" class="block text-sm font-medium text-gray-700 mb-2">Klik hier om foto of bestand toe te voegen van herstelactie {{ index + 1 }}</label>
+          <input :id="`foto-${index}`" type="file" @change="onFileChange($event, index)" accept="image/*" class="sr-only" />
+          <div v-if="actie.foto">
+            <img :src="actie.foto" alt="Foto herstelactie" class="max-h-48 mx-auto rounded-md border mb-2" />
           </div>
-          <div>
-            <label :for="`omschrijving-${index}`" class="block text-sm font-medium text-gray-700">Omschrijving {{ index + 1 }}</label>
-            <textarea :id="`omschrijving-${index}`" :name="`omschrijving-${index}`" v-model="actie.omschrijving" rows="3"
-              placeholder="Beschrijf de actie"
-              class="mt-2 block w-full rounded-md bg-brand-white px-3 py-2 text-gray-900 shadow-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-blue"></textarea>
-          </div>
-          <button @click.prevent="removeAction(index)" type="button"
-            class="text-sm text-red-600 hover:underline mt-2">Verwijder actie</button>
+          <textarea :id="`omschrijving-${index}`" v-model="actie.omschrijving" rows="3"
+            placeholder="Beschrijf de actie"
+            class="mt-2 block w-full rounded-md bg-brand-white px-3 py-2 text-gray-900 shadow-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-blue"></textarea>
+          <button @click.prevent="removeAction(index)" type="button" class="text-sm text-red-600 hover:underline mt-2">Verwijder actie</button>
         </div>
         <button @click.prevent="addAction" type="button"
-          class="rounded-md bg-brand-blue px-3 py-2 text-sm font-semibold text-black shadow-sm hover:bg-brand-navy">Voeg
-          nog een actie toe</button>
+          class="rounded-md bg-brand-blue px-3 py-2 text-sm font-semibold text-black shadow-sm hover:bg-brand-navy">Voeg nog een actie toe</button>
       </div>
 
       <!-- PDF Knop -->
@@ -85,6 +67,7 @@
 
 <script setup>
 import { reactive } from 'vue'
+import jsPDF from 'jspdf'
 
 const form = reactive({
   naam: '',
@@ -112,9 +95,8 @@ function onFileChange(event, index) {
     reader.readAsDataURL(file)
   }
 }
-
 function downloadPdf() {
-  // Validatie
+  // Formulier validatie
   if (!form.naam || !form.email || !form.datum || !form.adres) {
     alert('Vul alle verplichte velden in.')
     return
@@ -127,25 +109,103 @@ function downloadPdf() {
     }
   }
 
-  const element = document.querySelector('form')
-  const options = {
-    filename: 'herstelrapport.pdf',
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2 },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  }
+  // Maak de PDF aan
+  const doc = new jsPDF()
 
-  try {
-    if (!window.html2pdf) {
-      console.error('html2pdf.js is niet geladen.')
-      alert('PDF-generatie mislukt: html2pdf is niet beschikbaar.')
-      return
+  doc.setFontSize(22)
+  doc.text('Herstelrapport', 14, 20)
+
+  doc.setFontSize(12)
+  doc.text(`Naam: ${form.naam}`, 14, 30)
+  doc.text(`E-mail: ${form.email}`, 14, 40)
+  doc.text(`Datum: ${form.datum}`, 14, 50)
+  doc.text(`Adres: ${form.adres}`, 14, 60)
+
+  // Verhoog de afstand tussen herstelacties en zorg ervoor dat ze niet overlappen
+  let yPosition = 70;
+
+  form.acties.forEach((actie, index) => {
+    if (yPosition > 260) {
+      doc.addPage();  // Voeg een nieuwe pagina toe als de tekst te veel ruimte in beslag neemt
+      yPosition = 20; // Reset de y-positie na het toevoegen van een nieuwe pagina
     }
 
-    window.html2pdf().set(options).from(element).save()
-  } catch (err) {
-    console.error('Fout bij PDF-generatie:', err)
-    alert('Er is iets misgegaan bij het genereren van de PDF.')
-  }
+    // Zet de tekst voor de herstelactie
+    doc.text(`Herstelactie ${index + 1}:`, 14, yPosition);
+    yPosition += 10; // Voeg ruimte tussen de tekst en de afbeelding
+
+    // Voeg de omschrijving toe
+    doc.text(`Omschrijving: ${actie.omschrijving}`, 14, yPosition);
+    yPosition += 10; // Voeg ruimte tussen omschrijving en afbeelding
+
+    // Voeg de foto toe (zorg ervoor dat de foto niet te groot is)
+    if (actie.foto) {
+      doc.addImage(actie.foto, 'JPEG', 14, yPosition, 50, 50);
+      yPosition += 60; // Voeg ruimte toe onder de afbeelding
+    }
+    
+    // Voeg een extra regel toe voor de volgende actie
+    yPosition += 10;
+  });
+
+  // Genereer de PDF en download deze
+  doc.save('herstelrapport.pdf')
 }
+
+// function downloadPdf() {
+//   // Validation
+//   if (!form.naam || !form.email || !form.datum || !form.adres) {
+//     alert('Vul alle verplichte velden in.')
+//     return
+//   }
+
+//   for (const [index, actie] of form.acties.entries()) {
+//     if (!actie.omschrijving || !actie.foto) {
+//       alert(`Herstelactie ${index + 1} mist een omschrijving of foto.`)
+//       return
+//     }
+//   }
+
+//   // Generate PDF
+//   const doc = new jsPDF()
+  
+//   doc.setFontSize(22)
+//   doc.text('Herstelrapport', 14, 20)
+  
+//   doc.setFontSize(12)
+//   doc.text(`Naam: ${form.naam}`, 14, 30)
+//   doc.text(`E-mail: ${form.email}`, 14, 40)
+//   doc.text(`Datum: ${form.datum}`, 14, 50)
+//   doc.text(`Adres: ${form.adres}`, 14, 60)
+  
+//   form.acties.forEach((actie, index) => {
+//     doc.text(`Herstelactie ${index + 1}: ${actie.omschrijving}`, 14, 70 + (index * 20))
+//     doc.addImage(actie.foto, 'JPEG', 14, 80 + (index * 20), 50, 50)
+//   })
+
+//   doc.save('herstelrapport.pdf')
+// }
 </script>
+
+<style scoped>
+/* Customize any extra styling for your form */
+.bg-brand-gray {
+  background-color: #F2F6FA;
+}
+
+.bg-brand-white {
+  background-color: #FFFFFF;
+}
+
+.bg-brand-blue {
+  background-color: #0096FF;
+}
+
+.bg-brand-navy {
+  background-color: #003F6D;
+}
+
+.text-gray-700 {
+  color: #333333;
+}
+</style>
