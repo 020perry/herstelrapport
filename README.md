@@ -1,8 +1,3 @@
-# Vue 3 + Vite
+# Herstelrapport Form
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
-
-Learn more about IDE Support for Vue in the [Vue Docs Scaling up Guide](https://vuejs.org/guide/scaling-up/tooling.html#ide-support).
-
-## Scripts
-- `npm test` - runs the Vite build to verify project setup.
+This project uses Vue 3 and Vite. The form allows a user to create a repair report and download it as a PDF. The styling now uses a simple color palette centred on bright blue (`#0096FF`). See `DESIGN_IDEAS.md` for the full palette.
