@@ -248,49 +248,12 @@ function onFileChange(event, index) {
     }
     const reader = new FileReader()
     reader.onload = (e) => {
-      EXIF.getData(file, function () {
-        const orientation = EXIF.getTag(this, 'Orientation')
-        if (!orientation || orientation === 1) {
-          form.acties[index].foto = e.target.result
-        } else {
-          fixImageOrientation(e.target.result, orientation, (fixedBase64) => {
-            form.acties[index].foto = fixedBase64
-          })
-        }
-      })
+      form.acties[index].foto = e.target.result
     }
     reader.readAsDataURL(file)
   }
 }
-function fixImageOrientation(srcBase64, orientation, callback) {
-  const img = new window.Image()
-  img.onload = function () {
-    const width = img.width
-    const height = img.height
-    const canvas = document.createElement('canvas')
-    const ctx = canvas.getContext('2d')
-    if (orientation > 4) {
-      canvas.width = height
-      canvas.height = width
-    } else {
-      canvas.width = width
-      canvas.height = height
-    }
-    switch (orientation) {
-      case 2: ctx.transform(-1, 0, 0, 1, width, 0); break // flip X
-      case 3: ctx.transform(-1, 0, 0, -1, width, height); break // 180°
-      case 4: ctx.transform(1, 0, 0, -1, 0, height); break // flip Y
-      case 5: ctx.transform(0, 1, 1, 0, 0, 0); break // 90° CCW + flip X
-      case 6: ctx.transform(0, 1, -1, 0, height, 0); break // 90° CW
-      case 7: ctx.transform(0, -1, -1, 0, height, width); break // 90° CW + flip X
-      case 8: ctx.transform(0, -1, 1, 0, 0, width); break // 90° CCW
-      default: break
-    }
-    ctx.drawImage(img, 0, 0)
-    callback(canvas.toDataURL('image/jpeg', 0.95))
-  }
-  img.src = srcBase64
-}
+
 function validateForm() {
   let valid = true
   Object.keys(form).forEach((key) => {
