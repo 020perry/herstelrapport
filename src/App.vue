@@ -12,41 +12,41 @@
           <div class="space-y-6">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Naam rapport *</label>
-              <input v-model="form.rapportNaam" :class="getInputClass('rapportNaam')" placeholder="Voer de naam van het rapport in" />
+              <input v-model="form.rapportNaam" ref="ref_rapportNaam" :class="getInputClass('rapportNaam')" placeholder="Voer de naam van het rapport in" />
               <p v-if="errors.rapportNaam" class="mt-1 text-sm text-red-600">{{ errors.rapportNaam }}</p>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Datum uitvoering *</label>
-                <input v-model="form.rapportDatum" type="date" :class="getInputClass('rapportDatum')" />
+                <input v-model="form.rapportDatum" ref="ref_rapportDatum" type="date" :class="getInputClass('rapportDatum')" />
                 <p v-if="errors.rapportDatum" class="mt-1 text-sm text-red-600">{{ errors.rapportDatum }}</p>
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Bedrijfsnaam *</label>
-                <input v-model="form.bedrijf" :class="getInputClass('bedrijf')" placeholder="Naam van het bedrijf" />
+                <input v-model="form.bedrijf" ref="ref_bedrijf" :class="getInputClass('bedrijf')" placeholder="Naam van het bedrijf" />
                 <p v-if="errors.bedrijf" class="mt-1 text-sm text-red-600">{{ errors.bedrijf }}</p>
               </div>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Adres *</label>
-              <input v-model="form.adres" :class="getInputClass('adres')" placeholder="Straatnaam en huisnummer" />
+              <input v-model="form.adres" ref="ref_adres" :class="getInputClass('adres')" placeholder="Straatnaam en huisnummer" />
               <p v-if="errors.adres" class="mt-1 text-sm text-red-600">{{ errors.adres }}</p>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Postcode *</label>
-                <input v-model="form.postcode" :class="getInputClass('postcode')" placeholder="1234 AB" />
+                <input v-model="form.postcode" ref="ref_postcode" :class="getInputClass('postcode')" placeholder="1234 AB" />
                 <p v-if="errors.postcode" class="mt-1 text-sm text-red-600">{{ errors.postcode }}</p>
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Plaats *</label>
-                <input v-model="form.plaats" :class="getInputClass('plaats')" placeholder="Plaatsnaam" />
+                <input v-model="form.plaats" ref="ref_plaats" :class="getInputClass('plaats')" placeholder="Plaatsnaam" />
                 <p v-if="errors.plaats" class="mt-1 text-sm text-red-600">{{ errors.plaats }}</p>
               </div>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Telefoonnummer *</label>
-              <input v-model="form.telefoon" type="tel" :class="getInputClass('telefoon')" placeholder="06-12345678 of 010-1234567" />
+              <input v-model="form.telefoon" ref="ref_telefoon" type="tel" :class="getInputClass('telefoon')" placeholder="06-12345678 of 010-1234567" />
               <p v-if="errors.telefoon" class="mt-1 text-sm text-red-600">{{ errors.telefoon }}</p>
             </div>
           </div>
@@ -67,13 +67,13 @@
               <div class="space-y-4">
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">Omschrijving *</label>
-                  <textarea v-model="actie.omschrijving" :class="getTextareaClass(index)" rows="3" placeholder="Beschrijf de uitgevoerde herstelactie..."></textarea>
-                  <p v-if="errors[`actie_${index}`]" class="mt-1 text-sm text-red-600">{{ errors[`actie_${index}`] }}</p>
+                  <textarea v-model="actie.omschrijving" :ref="'ref_actieOmschrijving_' + index" :class="getTextareaClass(index)" rows="3" placeholder="Beschrijf de uitgevoerde herstelactie..."></textarea>
+                  <p v-if="errors[`actie_${index}`] && errors[`actie_${index}`].includes('Omschrijving')" class="mt-1 text-sm text-red-600">{{ errors[`actie_${index}`] }}</p>
                 </div>
                 <div>
                   <label class="block text-sm font-medium text-gray-700 mb-2">Foto *</label>
                   <div class="border border-gray-200 rounded-lg p-4 text-center bg-white">
-                    <input type="file" accept="image/*" @change="e => onFileChange(e, index)" class="hidden" :id="`file-${index}`" />
+                    <input type="file" accept="image/*" @change="e => onFileChange(e, index)" :ref="'ref_actieFoto_' + index" class="hidden" :id="`file-${index}`" />
                     <label :for="`file-${index}`" class="cursor-pointer">
                       <div v-if="!actie.foto" class="text-gray-400">
                         <svg class="mx-auto h-8 w-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -105,23 +105,23 @@
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Plaats *</label>
-              <input v-model="form.ondertekenPlaats" :class="getInputClass('ondertekenPlaats')" placeholder="Plaats van ondertekening" />
+              <input v-model="form.ondertekenPlaats" ref="ref_ondertekenPlaats" :class="getInputClass('ondertekenPlaats')" placeholder="Plaats van ondertekening" />
               <p v-if="errors.ondertekenPlaats" class="mt-1 text-sm text-red-600">{{ errors.ondertekenPlaats }}</p>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Naam *</label>
-              <input v-model="form.ondertekenNaam" :class="getInputClass('ondertekenNaam')" placeholder="Naam ondertekenaar" />
+              <input v-model="form.ondertekenNaam" ref="ref_ondertekenNaam" :class="getInputClass('ondertekenNaam')" placeholder="Naam ondertekenaar" />
               <p v-if="errors.ondertekenNaam" class="mt-1 text-sm text-red-600">{{ errors.ondertekenNaam }}</p>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Functie *</label>
-              <input v-model="form.ondertekenFunctie" :class="getInputClass('ondertekenFunctie')" placeholder="Functie ondertekenaar" />
+              <input v-model="form.ondertekenFunctie" ref="ref_ondertekenFunctie" :class="getInputClass('ondertekenFunctie')" placeholder="Functie ondertekenaar" />
               <p v-if="errors.ondertekenFunctie" class="mt-1 text-sm text-red-600">{{ errors.ondertekenFunctie }}</p>
             </div>
           </div>
           <div class="mb-6">
             <label class="block text-sm font-medium text-gray-700 mb-2">Datum *</label>
-            <input v-model="form.ondertekenDatum" type="date" :class="getInputClass('ondertekenDatum')" readonly />
+            <input v-model="form.ondertekenDatum" ref="ref_ondertekenDatum" type="date" :class="getInputClass('ondertekenDatum')" readonly />
             <p v-if="errors.ondertekenDatum" class="mt-1 text-sm text-red-600">{{ errors.ondertekenDatum }}</p>
           </div>
           <!-- Handtekening -->
@@ -138,15 +138,13 @@
           </div>
         </section>
 
-        <!-- Alleen de PDF knop -->
         <div class="flex flex-col sm:flex-row gap-3 mt-2">
-          <button type="button" @click="downloadPdf" :disabled="!isFormValid" :class="['flex-1 py-3 px-6 rounded-lg transition-colors duration-200 text-sm font-semibold', isFormValid ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-blue-200 text-blue-400 cursor-not-allowed']">
+          <button type="button" @click="downloadPdf" :disabled="false" :class="['flex-1 py-3 px-6 rounded-lg transition-colors duration-200 text-sm font-semibold', 'bg-blue-600 hover:bg-blue-700 text-white']">
             Download PDF
           </button>
         </div>
-
-        <p v-if="!isFormValid" class="text-xs text-gray-500 text-center mt-2">
-          Vul alle verplichte velden correct in om het PDF te kunnen downloaden
+        <p v-if="Object.keys(errors).length" class="text-xs text-red-600 text-center mt-2">
+          Vul alle verplichte velden correct in en corrigeer de fouten hierboven.
         </p>
       </form>
     </div>
@@ -154,7 +152,7 @@
 </template>
 
 <script setup>
-import { reactive, ref, onMounted, computed } from 'vue'
+import { reactive, ref, onMounted, computed, nextTick, getCurrentInstance } from 'vue'
 
 function today() {
   const d = new Date()
@@ -294,6 +292,40 @@ function validateForm() {
   }
   return valid
 }
+
+// Automatisch scrollen naar eerste foutveld
+const { proxy } = getCurrentInstance()
+function scrollToFirstError() {
+  nextTick(() => {
+    for (const key in errors) {
+      if (proxy.$refs['ref_' + key]) {
+        proxy.$refs['ref_' + key].scrollIntoView({ behavior: 'smooth', block: 'center' })
+        if (proxy.$refs['ref_' + key].focus) proxy.$refs['ref_' + key].focus()
+        break
+      }
+      // herstelacties
+      const match = key.match(/^actie_(\d+)$/)
+      if (match) {
+        const idx = match[1]
+        if (proxy.$refs['ref_actieOmschrijving_' + idx]) {
+          proxy.$refs['ref_actieOmschrijving_' + idx].scrollIntoView({ behavior: 'smooth', block: 'center' })
+          proxy.$refs['ref_actieOmschrijving_' + idx].focus()
+          break
+        }
+        if (proxy.$refs['ref_actieFoto_' + idx]) {
+          proxy.$refs['ref_actieFoto_' + idx].scrollIntoView({ behavior: 'smooth', block: 'center' })
+          break
+        }
+      }
+      // Handtekening
+      if (key === 'handtekening' && proxy.$refs.signatureCanvas) {
+        proxy.$refs.signatureCanvas.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        break
+      }
+    }
+  })
+}
+
 function clearSignature() {
   if (signaturePad) {
     signaturePad.clear()
@@ -301,13 +333,6 @@ function clearSignature() {
     signatureState.value++
   }
 }
-const isFormValid = computed(() => {
-  signatureState.value
-  const mainFields = Object.keys(form).filter(f => f !== 'acties')
-  const allMainValid = mainFields.every(f => form[f] && form[f].toString().trim() !== '')
-  const actionsValid = form.acties.every(a => a.omschrijving && a.omschrijving.trim().length >= 10 && a.foto)
-  return allMainValid && actionsValid && Object.keys(errors).length === 0 && signaturePad && !signaturePad.isEmpty()
-})
 
 onMounted(async () => {
   const { default: SignaturePad } = await import('signature_pad')
@@ -322,14 +347,17 @@ onMounted(async () => {
 })
 
 async function downloadPdf() {
-  if (!validateForm()) return
+  if (!validateForm()) {
+    scrollToFirstError()
+    return
+  }
   try {
     const { default: jsPDF } = await import('jspdf')
     const doc = new jsPDF()
     let y = 16
-    
-  // VASTE HERSTELVERKLARING TEKST
-  doc.setFontSize(11)
+
+    // HERSTELVERKLARING - vaste tekst
+    doc.setFontSize(11)
     const herstelTekst = [
       'Indien alle te herstellen punten zijn uitgevoerd kan onderstaande herstelverklaring worden ingevuld en ondertekend.',
       'De verklaring kunt u vervolgens samen met een kopie van het inspectierapport opsturen naar uw verzekeraar.',
@@ -342,6 +370,7 @@ async function downloadPdf() {
       y += lines.length * 5
     })
     y += 8
+
     // Inspectierapport
     doc.setFontSize(14)
     doc.setTextColor(0, 128, 0)
@@ -420,7 +449,6 @@ async function downloadPdf() {
       y += 10
     }
 
-    // Bestandsnaam met bedrijfsnaam en datum
     const now = new Date()
     const dateStr = now.toISOString().split('T')[0]
     const safeBedrijf = form.bedrijf ? form.bedrijf.replace(/[^a-zA-Z0-9]/g, '_') : 'herstelverklaring'
