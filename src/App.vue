@@ -1,147 +1,252 @@
 <template>
-  <form @submit.prevent="downloadPdf" class="bg-brand-gray min-h-screen py-12 px-6">
-    <div class="space-y-12 max-w-3xl mx-auto">
-      <!-- Titel -->
-      <div class="border-b border-gray-900/10 pb-12">
-        <h2 class="text-2xl font-semibold text-gray-900">Herstelrapport</h2>
-        <p class="mt-1 text-sm text-gray-600">Vul dit formulier in om een herstelrapport vast te leggen.</p>
+  <div class="min-h-screen bg-gray-50 py-8 px-4">
+    <div class="max-w-2xl mx-auto">
+      <div class="text-center mb-12">
+        <h1 class="text-3xl font-light text-gray-900 mb-3">Herstelverklaring</h1>
+        <p class="text-gray-600 text-sm">Vul onderstaande gegevens zorgvuldig in</p>
       </div>
-
-      <!-- Naam & E-mail -->
-      <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-        <div>
-          <label for="naam" class="block text-sm font-medium text-gray-700">Naam *</label>
-          <input id="naam" name="naam" v-model="form.naam" type="text" required
-            class="mt-2 block w-full rounded-md bg-brand-white px-3 py-2 text-gray-900 shadow-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-blue" />
-        </div>
-        <div>
-          <label for="email" class="block text-sm font-medium text-gray-700">E-mail *</label>
-          <input id="email" name="email" v-model="form.email" type="email" required
-            class="mt-2 block w-full rounded-md bg-brand-white px-3 py-2 text-gray-900 shadow-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-blue" />
-        </div>
-      </div>
-
-      <!-- Datum & Adres -->
-      <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-        <div>
-          <label for="datum" class="block text-sm font-medium text-gray-700">Datum *</label>
-          <input id="datum" name="datum" v-model="form.datum" type="date" required
-            class="mt-2 block w-full rounded-md bg-brand-white px-3 py-2 text-gray-900 shadow-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-blue" />
-        </div>
-        <div>
-          <label for="adres" class="block text-sm font-medium text-gray-700">Adres *</label>
-          <input id="adres" name="adres" v-model="form.adres" type="text" required
-            class="mt-2 block w-full rounded-md bg-brand-white px-3 py-2 text-gray-900 shadow-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-blue" />
-        </div>
-      </div>
-
-      <!-- Herstelacties -->
-      <div>
-        <h3 class="text-lg font-medium text-gray-900 mb-4">Herstelacties</h3>
-        <div v-for="(actie, index) in form.acties" :key="index"
-          class="mb-6 border border-dashed rounded-lg p-6 bg-white shadow-sm">
-          <label :for="`foto-${index}`" class="block text-sm font-medium text-gray-700 mb-2">Klik hier om foto of bestand toe te voegen van herstelactie {{ index + 1 }}</label>
-          <input :id="`foto-${index}`" type="file" @change="onFileChange($event, index)" accept="image/*" class="sr-only" />
-          <div v-if="actie.foto">
-            <img :src="actie.foto" alt="Foto herstelactie" class="max-h-48 mx-auto rounded-md border mb-2" />
+      <form @submit.prevent class="space-y-8">
+        <!-- Algemene gegevens -->
+        <section class="bg-white rounded-lg border border-gray-200 p-8">
+          <h2 class="text-lg font-medium text-gray-900 mb-6 pb-3 border-b border-gray-100">Algemene Gegevens</h2>
+          <div class="space-y-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Naam rapport *</label>
+              <input v-model="form.rapportNaam" :class="getInputClass('rapportNaam')" placeholder="Voer de naam van het rapport in" />
+              <p v-if="errors.rapportNaam" class="mt-1 text-sm text-red-600">{{ errors.rapportNaam }}</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Datum uitvoering *</label>
+                <input v-model="form.rapportDatum" type="date" :class="getInputClass('rapportDatum')" />
+                <p v-if="errors.rapportDatum" class="mt-1 text-sm text-red-600">{{ errors.rapportDatum }}</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Bedrijfsnaam *</label>
+                <input v-model="form.bedrijf" :class="getInputClass('bedrijf')" placeholder="Naam van het bedrijf" />
+                <p v-if="errors.bedrijf" class="mt-1 text-sm text-red-600">{{ errors.bedrijf }}</p>
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Adres *</label>
+              <input v-model="form.adres" :class="getInputClass('adres')" placeholder="Straatnaam en huisnummer" />
+              <p v-if="errors.adres" class="mt-1 text-sm text-red-600">{{ errors.adres }}</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Postcode *</label>
+                <input v-model="form.postcode" :class="getInputClass('postcode')" placeholder="1234 AB" />
+                <p v-if="errors.postcode" class="mt-1 text-sm text-red-600">{{ errors.postcode }}</p>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Plaats *</label>
+                <input v-model="form.plaats" :class="getInputClass('plaats')" placeholder="Plaatsnaam" />
+                <p v-if="errors.plaats" class="mt-1 text-sm text-red-600">{{ errors.plaats }}</p>
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Telefoonnummer *</label>
+              <input v-model="form.telefoon" type="tel" :class="getInputClass('telefoon')" placeholder="06-12345678 of 010-1234567" />
+              <p v-if="errors.telefoon" class="mt-1 text-sm text-red-600">{{ errors.telefoon }}</p>
+            </div>
           </div>
-          <textarea :id="`omschrijving-${index}`" v-model="actie.omschrijving" rows="3"
-            placeholder="Beschrijf de actie"
-            class="mt-2 block w-full rounded-md bg-brand-white px-3 py-2 text-gray-900 shadow-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-blue"></textarea>
-          <button @click.prevent="removeAction(index)" type="button" class="text-sm text-red-600 hover:underline mt-2">Verwijder actie</button>
+        </section>
+
+        <!-- Herstelacties -->
+        <section class="bg-white rounded-lg border border-gray-200 p-8">
+          <div class="flex justify-between items-center mb-6 pb-3 border-b border-gray-100">
+            <h2 class="text-lg font-medium text-gray-900">Herstelacties</h2>
+            <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">{{ form.acties.length }}</span>
+          </div>
+          <div class="space-y-6">
+            <div v-for="(actie, index) in form.acties" :key="index" class="border border-gray-100 rounded-lg p-6 bg-gray-50">
+              <div class="flex justify-between items-start mb-4">
+                <h3 class="text-sm font-medium text-gray-900">Actie {{ index + 1 }}</h3>
+                <button v-if="form.acties.length > 1" type="button" @click="removeAction(index)" class="text-xs text-gray-500 hover:text-red-600 underline">Verwijderen</button>
+              </div>
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Omschrijving *</label>
+                  <textarea v-model="actie.omschrijving" :class="getTextareaClass(index)" rows="3" placeholder="Beschrijf de uitgevoerde herstelactie..."></textarea>
+                  <p v-if="errors[`actie_${index}`]" class="mt-1 text-sm text-red-600">{{ errors[`actie_${index}`] }}</p>
+                </div>
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">Foto *</label>
+                  <div class="border border-gray-200 rounded-lg p-4 text-center bg-white">
+                    <input type="file" accept="image/*" @change="e => onFileChange(e, index)" class="hidden" :id="`file-${index}`" />
+                    <label :for="`file-${index}`" class="cursor-pointer">
+                      <div v-if="!actie.foto" class="text-gray-400">
+                        <svg class="mx-auto h-8 w-8 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        <p class="text-xs">Foto toevoegen</p>
+                      </div>
+                    </label>
+                    <div v-if="actie.foto" class="relative">
+                      <img :src="actie.foto" alt="Preview" class="max-h-32 mx-auto rounded" />
+                      <button type="button" @click="removePhoto(index)" class="absolute top-1 right-1 bg-white rounded-full w-5 h-5 flex items-center justify-center text-xs text-gray-600 hover:text-red-600 shadow">×</button>
+                    </div>
+                  </div>
+                  <p v-if="errors[`actie_${index}`] && errors[`actie_${index}`].includes('Foto')" class="mt-1 text-sm text-red-600">
+                    {{ errors[`actie_${index}`] }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button type="button" @click="addAction" class="mt-6 w-full border border-blue-500 text-blue-700 py-3 px-4 rounded-lg hover:bg-blue-50 hover:text-blue-900 transition-colors duration-200 text-sm font-semibold">
+            + Herstelactie toevoegen
+          </button>
+        </section>
+
+        <!-- Ondertekening -->
+        <section class="bg-white rounded-lg border border-gray-200 p-8">
+          <h2 class="text-lg font-medium text-gray-900 mb-6 pb-3 border-b border-gray-100">Ondertekening</h2>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Plaats *</label>
+              <input v-model="form.ondertekenPlaats" :class="getInputClass('ondertekenPlaats')" placeholder="Plaats van ondertekening" />
+              <p v-if="errors.ondertekenPlaats" class="mt-1 text-sm text-red-600">{{ errors.ondertekenPlaats }}</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Naam *</label>
+              <input v-model="form.ondertekenNaam" :class="getInputClass('ondertekenNaam')" placeholder="Naam ondertekenaar" />
+              <p v-if="errors.ondertekenNaam" class="mt-1 text-sm text-red-600">{{ errors.ondertekenNaam }}</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">Functie *</label>
+              <input v-model="form.ondertekenFunctie" :class="getInputClass('ondertekenFunctie')" placeholder="Functie ondertekenaar" />
+              <p v-if="errors.ondertekenFunctie" class="mt-1 text-sm text-red-600">{{ errors.ondertekenFunctie }}</p>
+            </div>
+          </div>
+          <div class="mb-6">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Datum *</label>
+            <input v-model="form.ondertekenDatum" type="date" :class="getInputClass('ondertekenDatum')" readonly />
+            <p v-if="errors.ondertekenDatum" class="mt-1 text-sm text-red-600">{{ errors.ondertekenDatum }}</p>
+          </div>
+          <!-- Handtekening -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-3">Handtekening *</label>
+            <div class="border border-gray-200 rounded-lg p-4 bg-gray-50">
+              <canvas ref="signatureCanvas" class="border border-gray-300 w-full h-32 rounded bg-white cursor-crosshair"></canvas>
+              <div class="flex justify-between items-center mt-3">
+                <p class="text-xs text-gray-500">Zet uw handtekening hierboven</p>
+                <button type="button" @click="clearSignature" class="text-xs text-gray-600 hover:text-red-600 underline">Wissen</button>
+              </div>
+              <p v-if="errors.handtekening" class="mt-1 text-sm text-red-600">{{ errors.handtekening }}</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Alleen de PDF knop -->
+        <div class="flex flex-col sm:flex-row gap-3 mt-2">
+          <button type="button" @click="downloadPdf" :disabled="!isFormValid" :class="['flex-1 py-3 px-6 rounded-lg transition-colors duration-200 text-sm font-semibold', isFormValid ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-blue-200 text-blue-400 cursor-not-allowed']">
+            Download PDF
+          </button>
         </div>
-        <button @click.prevent="addAction" type="button"
-          class="rounded-md bg-brand-blue px-3 py-2 text-sm font-semibold text-black shadow-sm hover:bg-brand-navy">Voeg nog een actie toe</button>
-      </div>
-<!-- Herstelverklaring -->
-<div class="border-t border-gray-900/10 pt-8">
-  <h3 class="text-lg font-medium text-gray-900 mb-4">Herstelverklaring</h3>
 
-  <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-    <div>
-      <label for="monteur" class="block text-sm font-medium text-gray-700">Naam van monteur *</label>
-      <input id="monteur" v-model="form.monteur" type="text" required
-        class="mt-2 block w-full rounded-md bg-brand-white px-3 py-2 text-gray-900 shadow-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-blue" />
-    </div>
-    <div>
-      <label for="bedrijf" class="block text-sm font-medium text-gray-700">Bedrijfsnaam *</label>
-      <input id="bedrijf" v-model="form.bedrijf" type="text" required
-        class="mt-2 block w-full rounded-md bg-brand-white px-3 py-2 text-gray-900 shadow-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-blue" />
+        <p v-if="!isFormValid" class="text-xs text-gray-500 text-center mt-2">
+          Vul alle verplichte velden correct in om het PDF te kunnen downloaden
+        </p>
+      </form>
     </div>
   </div>
-
-  <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 mt-6">
-    <div>
-      <label for="functie" class="block text-sm font-medium text-gray-700">Functie *</label>
-      <input id="functie" v-model="form.functie" type="text" required
-        class="mt-2 block w-full rounded-md bg-brand-white px-3 py-2 text-gray-900 shadow-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-blue" />
-    </div>
-    <!-- Handtekening -->
-<div>
-  <label class="block text-sm font-medium text-gray-700 mb-2">Handtekening *</label>
-  <div class="border rounded bg-white shadow-sm p-2">
-    <canvas ref="signatureCanvas" class="border rounded w-full h-40 touch-manipulation"></canvas>
-  </div>
-  <div class="flex justify-between mt-2">
-    <button type="button" @click="clearSignature" class="text-sm text-red-600 hover:underline">Wis handtekening</button>
-  </div>
-</div>
-
-  </div>
-</div>
-
-      <!-- PDF Knop -->
-      <div class="pt-8 border-t border-gray-900/10 text-right">
-        <button @click.prevent="downloadPdf" type="submit"
-          class="rounded-md bg-brand-blue px-6 py-2 text-sm font-semibold text-black shadow-sm hover:bg-brand-navy focus:outline-none focus:ring-2 focus:ring-brand-blue">
-          Download PDF
-        </button>
-      </div>
-    </div>
-  </form>
 </template>
 
 <script setup>
-import { reactive, ref, onMounted } from 'vue'
-import jsPDF from 'jspdf'
-import SignaturePad from 'signature_pad'
+import { reactive, ref, onMounted, computed } from 'vue'
+
+function today() {
+  const d = new Date()
+  return d.toISOString().slice(0, 10)
+}
 
 const form = reactive({
-  naam: '',
-  email: '',
-  datum: '',
-  adres: '',
-  acties: [{ omschrijving: '', foto: null }],
-  monteur: '',
+  rapportNaam: '',
+  rapportDatum: '',
   bedrijf: '',
-  functie: '',
-  handtekening: null
+  adres: '',
+  postcode: '',
+  plaats: '',
+  telefoon: '',
+  acties: [{ omschrijving: '', foto: null }],
+  ondertekenPlaats: '',
+  ondertekenNaam: '',
+  ondertekenFunctie: '',
+  ondertekenDatum: today(),
 })
 
+const errors = reactive({})
 const signatureCanvas = ref(null)
-let signaturePad
+let signaturePad = null
+const signatureState = ref(0)
 
-onMounted(() => {
-  signaturePad = new SignaturePad(signatureCanvas.value, {
-    backgroundColor: '#fff',
-    penColor: 'black',
-  })
-})
-
-function clearSignature() {
-  signaturePad.clear()
+function getInputClass(fieldName) {
+  const base = 'w-full border rounded-lg px-3 py-2 text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+  return errors[fieldName] ? `${base} border-red-300 bg-red-50` : `${base} border-gray-300 hover:border-blue-500`
+}
+function getTextareaClass(index) {
+  const baseClass = "w-full border rounded-lg px-3 py-2 text-sm transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-vertical"
+  return errors[`actie_${index}`] 
+    ? `${baseClass} border-red-300 bg-red-50` 
+    : `${baseClass} border-gray-300 hover:border-blue-500`;
+}
+function validateField(fieldName) {
+  if (!form[fieldName] || form[fieldName].toString().trim() === '') {
+    errors[fieldName] = 'Dit veld is verplicht'
+    return false
+  }
+  if (fieldName === 'postcode') {
+    const re = /^[1-9][0-9]{3}\s?[A-Za-z]{2}$/
+    if (!re.test(form.postcode)) {
+      errors.postcode = 'Voer een geldige postcode in (bijv. 1234 AB)'
+      return false
+    }
+  }
+  if (fieldName === 'telefoon') {
+    const re = /^(?:\+31|0)[1-9][0-9]{8}$/
+    if (!re.test(form.telefoon.replace(/[\s-]/g, ''))) {
+      errors.telefoon = 'Voer een geldig Nederlands telefoonnummer in'
+      return false
+    }
+  }
+  delete errors[fieldName]
+  return true
+}
+function validateAction(index) {
+  const actie = form.acties[index]
+  if (!actie.omschrijving || actie.omschrijving.trim() === '') {
+    errors[`actie_${index}`] = 'Omschrijving is verplicht'
+    return false
+  }
+  if (actie.omschrijving && actie.omschrijving.length < 10) {
+    errors[`actie_${index}`] = 'Omschrijving moet minimaal 10 karakters bevatten'
+    return false
+  }
+  if (!actie.foto) {
+    errors[`actie_${index}`] = 'Foto is verplicht'
+    return false
+  }
+  delete errors[`actie_${index}`]
+  return true
 }
 function addAction() {
   form.acties.push({ omschrijving: '', foto: null })
 }
-
 function removeAction(index) {
   form.acties.splice(index, 1)
+  delete errors[`actie_${index}`]
 }
-
+function removePhoto(index) {
+  form.acties[index].foto = null
+}
 function onFileChange(event, index) {
   const file = event.target.files[0]
   if (file) {
+    if (file.size > 10 * 1024 * 1024) {
+      alert('Bestand is te groot. Maximaal 10MB toegestaan.')
+      return
+    }
     const reader = new FileReader()
     reader.onload = (e) => {
       form.acties[index].foto = e.target.result
@@ -149,143 +254,181 @@ function onFileChange(event, index) {
     reader.readAsDataURL(file)
   }
 }
-function downloadPdf() {
-  // Formulier validatie
-  if (!form.naam || !form.email || !form.datum || !form.adres) {
-    alert('Vul alle verplichte velden in.')
-    return
+function validateForm() {
+  let valid = true
+  Object.keys(form).forEach((key) => {
+    if (key !== 'acties' && !validateField(key)) valid = false
+  })
+  form.acties.forEach((actie, idx) => {
+    if (!validateAction(idx)) valid = false
+  })
+  if (!form.ondertekenPlaats || form.ondertekenPlaats.trim() === '') {
+    errors.ondertekenPlaats = 'Dit veld is verplicht'
+    valid = false
+  } else {
+    delete errors.ondertekenPlaats
   }
-  const signatureDataUrl = signaturePad.isEmpty() ? null : signaturePad.toDataURL('image/jpeg')
-
-if (!signatureDataUrl) {
-  alert('Handtekening is verplicht.')
-  return
+  if (!form.ondertekenNaam || form.ondertekenNaam.trim() === '') {
+    errors.ondertekenNaam = 'Dit veld is verplicht'
+    valid = false
+  } else {
+    delete errors.ondertekenNaam
+  }
+  if (!form.ondertekenFunctie || form.ondertekenFunctie.trim() === '') {
+    errors.ondertekenFunctie = 'Dit veld is verplicht'
+    valid = false
+  } else {
+    delete errors.ondertekenFunctie
+  }
+  if (!form.ondertekenDatum) {
+    errors.ondertekenDatum = 'Dit veld is verplicht'
+    valid = false
+  } else {
+    delete errors.ondertekenDatum
+  }
+  if (!signaturePad || signaturePad.isEmpty()) {
+    errors.handtekening = 'Handtekening is verplicht'
+    valid = false
+  } else {
+    delete errors.handtekening
+  }
+  return valid
 }
-
-  for (const [index, actie] of form.acties.entries()) {
-    if (!actie.omschrijving || !actie.foto) {
-      alert(`Herstelactie ${index + 1} mist een omschrijving of foto.`)
-      return
-    }
+function clearSignature() {
+  if (signaturePad) {
+    signaturePad.clear()
+    errors.handtekening = 'Handtekening is verplicht'
+    signatureState.value++
   }
+}
+const isFormValid = computed(() => {
+  signatureState.value
+  const mainFields = Object.keys(form).filter(f => f !== 'acties')
+  const allMainValid = mainFields.every(f => form[f] && form[f].toString().trim() !== '')
+  const actionsValid = form.acties.every(a => a.omschrijving && a.omschrijving.trim().length >= 10 && a.foto)
+  return allMainValid && actionsValid && Object.keys(errors).length === 0 && signaturePad && !signaturePad.isEmpty()
+})
 
-  // Maak de PDF aan
-  const doc = new jsPDF()
+onMounted(async () => {
+  const { default: SignaturePad } = await import('signature_pad')
+  signaturePad = new SignaturePad(signatureCanvas.value, {
+    backgroundColor: '#fff',
+    penColor: '#000',
+    minWidth: 1,
+    maxWidth: 2,
+  })
+  signatureCanvas.value.addEventListener('mouseup', () => { signatureState.value++ })
+  signatureCanvas.value.addEventListener('touchend', () => { signatureState.value++ })
+})
 
-  doc.setFontSize(22)
-  doc.text('Herstelrapport', 14, 20)
-
-  doc.setFontSize(12)
-  doc.text(`Naam: ${form.naam}`, 14, 30)
-  doc.text(`E-mail: ${form.email}`, 14, 40)
-  doc.text(`Datum: ${form.datum}`, 14, 50)
-  doc.text(`Adres: ${form.adres}`, 14, 60)
-
-  // Verhoog de afstand tussen herstelacties en zorg ervoor dat ze niet overlappen
-  let yPosition = 70;
-
-  form.acties.forEach((actie, index) => {
-    if (yPosition > 260) {
-      doc.addPage();  // Voeg een nieuwe pagina toe als de tekst te veel ruimte in beslag neemt
-      yPosition = 20; // Reset de y-positie na het toevoegen van een nieuwe pagina
-    }
-
-    // Zet de tekst voor de herstelactie
-    doc.text(`Herstelactie ${index + 1}:`, 14, yPosition);
-    yPosition += 10; // Voeg ruimte tussen de tekst en de afbeelding
-
-    // Voeg de omschrijving toe
-    doc.text(`Omschrijving: ${actie.omschrijving}`, 14, yPosition);
-    yPosition += 10; // Voeg ruimte tussen omschrijving en afbeelding
-
-    // Voeg de foto toe (zorg ervoor dat de foto niet te groot is)
-    if (actie.foto) {
-      doc.addImage(actie.foto, 'JPEG', 14, yPosition, 50, 50);
-      yPosition += 60; // Voeg ruimte toe onder de afbeelding
-    }
+async function downloadPdf() {
+  if (!validateForm()) return
+  try {
+    const { default: jsPDF } = await import('jspdf')
+    const doc = new jsPDF()
+    let y = 16
     
-    // Voeg een extra regel toe voor de volgende actie
-    yPosition += 10;
-  });
+  // VASTE HERSTELVERKLARING TEKST
+  doc.setFontSize(11)
+    const herstelTekst = [
+      'Indien alle te herstellen punten zijn uitgevoerd kan onderstaande herstelverklaring worden ingevuld en ondertekend.',
+      'De verklaring kunt u vervolgens samen met een kopie van het inspectierapport opsturen naar uw verzekeraar.',
+      'Alle gebreken geclassificeerd als I (A) en II (B) fouten, zoals vastgelegd in het inspectierapport vakkundig zijn hersteld.',
+      'De werkzaamheden zijn uitgevoerd conform de geldende NEN 1010 installatievoorschriften.'
+    ]
+    herstelTekst.forEach(t => {
+      const lines = doc.splitTextToSize(t, 180)
+      doc.text(lines, 14, y)
+      y += lines.length * 5
+    })
+    y += 8
+    // Inspectierapport
+    doc.setFontSize(14)
+    doc.setTextColor(0, 128, 0)
+    doc.text('Inspectierapport:', 14, y)
+    doc.setFontSize(11)
+    doc.setTextColor(0, 0, 0)
+    y += 6
+    doc.text(`Naam rapport: ${form.rapportNaam}`, 14, y)
+    y += 6
+    doc.text(`Datum uitvoer: ${form.rapportDatum}`, 14, y)
+    y += 10
 
+    // Installatiebedrijf
+    doc.setFontSize(14)
+    doc.setTextColor(0, 128, 0)
+    doc.text('Installatiebedrijf:', 14, y)
+    doc.setFontSize(11)
+    doc.setTextColor(0, 0, 0)
+    y += 6
+    doc.text(`Bedrijfsnaam: ${form.bedrijf}`, 14, y); y += 6
+    doc.text(`Adres: ${form.adres}`, 14, y); y += 6
+    doc.text(`Postcode/plaats: ${form.postcode} ${form.plaats}`, 14, y); y += 6
+    doc.text(`Telefoonnummer: ${form.telefoon}`, 14, y); y += 10
 
-// Voeg handtekening toe
-if (signatureDataUrl) {
-  doc.text('Handtekening:', 14, yPosition)
-  yPosition += 5
-  doc.addImage(signatureDataUrl, 'JPEG', 14, yPosition, 60, 30)
-  yPosition += 40
-}
+    // Herstelacties
+    doc.setFontSize(14)
+    doc.setTextColor(0, 100, 200)
+    doc.text('Herstelacties', 14, y); y += 8
+    doc.setFontSize(11)
+    doc.setTextColor(0, 0, 0)
+    form.acties.forEach((actie, idx) => {
+      if (y > 240) { doc.addPage(); y = 20 }
+      doc.setFont(undefined, "bold");
+      doc.text(`Actie ${idx + 1}:`, 14, y); y += 6
+      doc.setFont(undefined, "normal");
+      const lines = doc.splitTextToSize(actie.omschrijving, 180)
+      doc.text(lines, 14, y); y += lines.length * 5
+      if (actie.foto) {
+        if (y > 170) { doc.addPage(); y = 20 }
+        let imgType = 'JPEG'
+        if (actie.foto.startsWith('data:image/png')) imgType = 'PNG'
+        try {
+          doc.addImage(actie.foto, imgType, 14, y, 80, 53)
+        } catch (e) {
+          doc.text('⚠️ Fout bij het toevoegen van de foto', 14, y)
+        }
+        y += 60
+      } else {
+        y += 4
+      }
+      y += 2
+    })
 
-  // Genereer de PDF en download deze
-  doc.save('herstelrapport.pdf')
-}
+    // Ondertekening
+    doc.setFontSize(14)
+    doc.setTextColor(0, 128, 0)
+    doc.text('Ondertekening:', 14, y)
+    doc.setFontSize(11)
+    doc.setTextColor(0, 0, 0)
+    y += 6
+    doc.text(`Plaats: ${form.ondertekenPlaats}`, 14, y); y += 6
+    doc.text(`Naam: ${form.ondertekenNaam}`, 14, y); y += 6
+    doc.text(`Functie: ${form.ondertekenFunctie}`, 14, y); y += 6
+    doc.text(`Datum: ${form.ondertekenDatum}`, 14, y); y += 8
+    doc.text('Handtekening:', 14, y); y += 5
 
-function onSignatureChange(event) {
-  const file = event.target.files[0]
-  if (file && file.type.startsWith('image/')) {
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      form.handtekening = e.target.result
+    if (signaturePad && !signaturePad.isEmpty()) {
+      try {
+        const signatureData = signaturePad.toDataURL('image/jpeg')
+        doc.addImage(signatureData, 'JPEG', 14, y, 60, 30)
+      } catch (e) {
+        doc.text('⚠️ Fout bij het toevoegen van de handtekening', 14, y)
+      }
+      y += 35
+    } else {
+      y += 10
     }
-    reader.readAsDataURL(file)
+
+    // Bestandsnaam met bedrijfsnaam en datum
+    const now = new Date()
+    const dateStr = now.toISOString().split('T')[0]
+    const safeBedrijf = form.bedrijf ? form.bedrijf.replace(/[^a-zA-Z0-9]/g, '_') : 'herstelverklaring'
+    const filename = `herstelverklaring_${safeBedrijf}_${dateStr}.pdf`
+    doc.save(filename)
+  } catch (e) {
+    alert('Er is iets misgegaan bij het genereren van de PDF:\n' + e)
+    console.error('PDF fout:', e)
   }
 }
-
-// function downloadPdf() {
-//   // Validation
-//   if (!form.naam || !form.email || !form.datum || !form.adres) {
-//     alert('Vul alle verplichte velden in.')
-//     return
-//   }
-
-//   for (const [index, actie] of form.acties.entries()) {
-//     if (!actie.omschrijving || !actie.foto) {
-//       alert(`Herstelactie ${index + 1} mist een omschrijving of foto.`)
-//       return
-//     }
-//   }
-
-//   // Generate PDF
-//   const doc = new jsPDF()
-  
-//   doc.setFontSize(22)
-//   doc.text('Herstelrapport', 14, 20)
-  
-//   doc.setFontSize(12)
-//   doc.text(`Naam: ${form.naam}`, 14, 30)
-//   doc.text(`E-mail: ${form.email}`, 14, 40)
-//   doc.text(`Datum: ${form.datum}`, 14, 50)
-//   doc.text(`Adres: ${form.adres}`, 14, 60)
-  
-//   form.acties.forEach((actie, index) => {
-//     doc.text(`Herstelactie ${index + 1}: ${actie.omschrijving}`, 14, 70 + (index * 20))
-//     doc.addImage(actie.foto, 'JPEG', 14, 80 + (index * 20), 50, 50)
-//   })
-
-//   doc.save('herstelrapport.pdf')
-// }
 </script>
-
-<style scoped>
-/* Customize any extra styling for your form */
-.bg-brand-gray {
-  background-color: #F2F6FA;
-}
-
-.bg-brand-white {
-  background-color: #FFFFFF;
-}
-
-.bg-brand-blue {
-  background-color: #0096FF;
-}
-
-.bg-brand-navy {
-  background-color: #003F6D;
-}
-
-.text-gray-700 {
-  color: #333333;
-}
-</style>
