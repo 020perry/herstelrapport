@@ -153,6 +153,7 @@
 
 <script setup>
 import { reactive, ref, onMounted, computed, nextTick, getCurrentInstance } from 'vue'
+import EXIF from 'exif-js'
 
 function today() {
   const d = new Date()
@@ -247,10 +248,48 @@ function onFileChange(event, index) {
     }
     const reader = new FileReader()
     reader.onload = (e) => {
-      form.acties[index].foto = e.target.result
+      EXIF.getData(file, function () {
+        const orientation = EXIF.getTag(this, 'Orientation')
+        if (!orientation || orientation === 1) {
+          form.acties[index].foto = e.target.result
+        } else {
+          fixImageOrientation(e.target.result, orientation, (fixedBase64) => {
+            form.acties[index].foto = fixedBase64
+          })
+        }
+      })
     }
     reader.readAsDataURL(file)
   }
+}
+function fixImageOrientation(srcBase64, orientation, callback) {
+  const img = new window.Image()
+  img.onload = function () {
+    const width = img.width
+    const height = img.height
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
+    if (orientation > 4) {
+      canvas.width = height
+      canvas.height = width
+    } else {
+      canvas.width = width
+      canvas.height = height
+    }
+    switch (orientation) {
+      case 2: ctx.transform(-1, 0, 0, 1, width, 0); break // flip X
+      case 3: ctx.transform(-1, 0, 0, -1, width, height); break // 180°
+      case 4: ctx.transform(1, 0, 0, -1, 0, height); break // flip Y
+      case 5: ctx.transform(0, 1, 1, 0, 0, 0); break // 90° CCW + flip X
+      case 6: ctx.transform(0, 1, -1, 0, height, 0); break // 90° CW
+      case 7: ctx.transform(0, -1, -1, 0, height, width); break // 90° CW + flip X
+      case 8: ctx.transform(0, -1, 1, 0, 0, width); break // 90° CCW
+      default: break
+    }
+    ctx.drawImage(img, 0, 0)
+    callback(canvas.toDataURL('image/jpeg', 0.95))
+  }
+  img.src = srcBase64
 }
 function validateForm() {
   let valid = true
@@ -293,7 +332,6 @@ function validateForm() {
   return valid
 }
 
-// Automatisch scrollen naar eerste foutveld
 const { proxy } = getCurrentInstance()
 function scrollToFirstError() {
   nextTick(() => {
@@ -303,7 +341,6 @@ function scrollToFirstError() {
         if (proxy.$refs['ref_' + key].focus) proxy.$refs['ref_' + key].focus()
         break
       }
-      // herstelacties
       const match = key.match(/^actie_(\d+)$/)
       if (match) {
         const idx = match[1]
@@ -317,7 +354,6 @@ function scrollToFirstError() {
           break
         }
       }
-      // Handtekening
       if (key === 'handtekening' && proxy.$refs.signatureCanvas) {
         proxy.$refs.signatureCanvas.scrollIntoView({ behavior: 'smooth', block: 'center' })
         break
@@ -345,6 +381,24 @@ onMounted(async () => {
   signatureCanvas.value.addEventListener('mouseup', () => { signatureState.value++ })
   signatureCanvas.value.addEventListener('touchend', () => { signatureState.value++ })
 })
+
+async function drawImageAutoSize(doc, base64img, x, y, maxWidth = 120, maxHeight = 80) {
+  return new Promise(resolve => {
+    const img = new window.Image();
+    img.onload = function () {
+      let ratio = Math.min(maxWidth / img.width, maxHeight / img.height);
+      let width = img.width * ratio;
+      let height = img.height * ratio;
+      if (y + height > 280) {
+        doc.addPage();
+        y = 20;
+      }
+      doc.addImage(base64img, 'JPEG', x, y, width, height);
+      resolve({ yNew: y + height + 5, height });
+    }
+    img.src = base64img;
+  });
+}
 
 async function downloadPdf() {
   if (!validateForm()) {
@@ -401,7 +455,8 @@ async function downloadPdf() {
     doc.text('Herstelacties', 14, y); y += 8
     doc.setFontSize(11)
     doc.setTextColor(0, 0, 0)
-    form.acties.forEach((actie, idx) => {
+    for (let idx = 0; idx < form.acties.length; idx++) {
+      const actie = form.acties[idx];
       if (y > 240) { doc.addPage(); y = 20 }
       doc.setFont(undefined, "bold");
       doc.text(`Actie ${idx + 1}:`, 14, y); y += 6
@@ -409,20 +464,13 @@ async function downloadPdf() {
       const lines = doc.splitTextToSize(actie.omschrijving, 180)
       doc.text(lines, 14, y); y += lines.length * 5
       if (actie.foto) {
-        if (y > 170) { doc.addPage(); y = 20 }
-        let imgType = 'JPEG'
-        if (actie.foto.startsWith('data:image/png')) imgType = 'PNG'
-        try {
-          doc.addImage(actie.foto, imgType, 14, y, 80, 53)
-        } catch (e) {
-          doc.text('⚠️ Fout bij het toevoegen van de foto', 14, y)
-        }
-        y += 60
+        const result = await drawImageAutoSize(doc, actie.foto, 14, y, 120, 80)
+        y = result.yNew;
       } else {
         y += 4
       }
       y += 2
-    })
+    }
 
     // Ondertekening
     doc.setFontSize(14)
@@ -460,3 +508,4 @@ async function downloadPdf() {
   }
 }
 </script>
+
