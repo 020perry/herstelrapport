@@ -53,6 +53,42 @@
         <button @click.prevent="addAction" type="button"
           class="rounded-md bg-brand-blue px-3 py-2 text-sm font-semibold text-black shadow-sm hover:bg-brand-navy">Voeg nog een actie toe</button>
       </div>
+<!-- Herstelverklaring -->
+<div class="border-t border-gray-900/10 pt-8">
+  <h3 class="text-lg font-medium text-gray-900 mb-4">Herstelverklaring</h3>
+
+  <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+    <div>
+      <label for="monteur" class="block text-sm font-medium text-gray-700">Naam van monteur *</label>
+      <input id="monteur" v-model="form.monteur" type="text" required
+        class="mt-2 block w-full rounded-md bg-brand-white px-3 py-2 text-gray-900 shadow-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-blue" />
+    </div>
+    <div>
+      <label for="bedrijf" class="block text-sm font-medium text-gray-700">Bedrijfsnaam *</label>
+      <input id="bedrijf" v-model="form.bedrijf" type="text" required
+        class="mt-2 block w-full rounded-md bg-brand-white px-3 py-2 text-gray-900 shadow-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-blue" />
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 mt-6">
+    <div>
+      <label for="functie" class="block text-sm font-medium text-gray-700">Functie *</label>
+      <input id="functie" v-model="form.functie" type="text" required
+        class="mt-2 block w-full rounded-md bg-brand-white px-3 py-2 text-gray-900 shadow-sm border border-gray-300 focus:outline-none focus:ring-2 focus:ring-brand-blue" />
+    </div>
+    <!-- Handtekening -->
+<div>
+  <label class="block text-sm font-medium text-gray-700 mb-2">Handtekening *</label>
+  <div class="border rounded bg-white shadow-sm p-2">
+    <canvas ref="signatureCanvas" class="border rounded w-full h-40 touch-manipulation"></canvas>
+  </div>
+  <div class="flex justify-between mt-2">
+    <button type="button" @click="clearSignature" class="text-sm text-red-600 hover:underline">Wis handtekening</button>
+  </div>
+</div>
+
+  </div>
+</div>
 
       <!-- PDF Knop -->
       <div class="pt-8 border-t border-gray-900/10 text-right">
@@ -66,17 +102,35 @@
 </template>
 
 <script setup>
-import { reactive } from 'vue'
+import { reactive, ref, onMounted } from 'vue'
 import jsPDF from 'jspdf'
+import SignaturePad from 'signature_pad'
 
 const form = reactive({
   naam: '',
   email: '',
   datum: '',
   adres: '',
-  acties: [{ omschrijving: '', foto: null }]
+  acties: [{ omschrijving: '', foto: null }],
+  monteur: '',
+  bedrijf: '',
+  functie: '',
+  handtekening: null
 })
 
+const signatureCanvas = ref(null)
+let signaturePad
+
+onMounted(() => {
+  signaturePad = new SignaturePad(signatureCanvas.value, {
+    backgroundColor: '#fff',
+    penColor: 'black',
+  })
+})
+
+function clearSignature() {
+  signaturePad.clear()
+}
 function addAction() {
   form.acties.push({ omschrijving: '', foto: null })
 }
@@ -101,6 +155,12 @@ function downloadPdf() {
     alert('Vul alle verplichte velden in.')
     return
   }
+  const signatureDataUrl = signaturePad.isEmpty() ? null : signaturePad.toDataURL('image/jpeg')
+
+if (!signatureDataUrl) {
+  alert('Handtekening is verplicht.')
+  return
+}
 
   for (const [index, actie] of form.acties.entries()) {
     if (!actie.omschrijving || !actie.foto) {
@@ -148,8 +208,28 @@ function downloadPdf() {
     yPosition += 10;
   });
 
+
+// Voeg handtekening toe
+if (signatureDataUrl) {
+  doc.text('Handtekening:', 14, yPosition)
+  yPosition += 5
+  doc.addImage(signatureDataUrl, 'JPEG', 14, yPosition, 60, 30)
+  yPosition += 40
+}
+
   // Genereer de PDF en download deze
   doc.save('herstelrapport.pdf')
+}
+
+function onSignatureChange(event) {
+  const file = event.target.files[0]
+  if (file && file.type.startsWith('image/')) {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      form.handtekening = e.target.result
+    }
+    reader.readAsDataURL(file)
+  }
 }
 
 // function downloadPdf() {
