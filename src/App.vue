@@ -94,9 +94,14 @@
               </div>
             </div>
           </div>
-          <button type="button" @click="addAction" class="mt-6 w-full border border-blue-500 text-blue-700 py-3 px-4 rounded-lg hover:bg-blue-50 hover:text-blue-900 transition-colors duration-200 text-sm font-semibold">
-            + Herstelactie toevoegen
-          </button>
+          <button
+  type="button"
+  @click="addAction"
+  class="mt-6 w-full bg-black text-black py-3 px-4 rounded-lg hover:bg-gray-900 text-sm font-semibold"
+>
+  + Herstelactie toevoegen
+</button>
+
         </section>
 
         <!-- Ondertekening -->
@@ -139,9 +144,14 @@
         </section>
 
         <div class="flex flex-col sm:flex-row gap-3 mt-2">
-          <button type="button" @click="downloadPdf" :disabled="false" :class="['flex-1 py-3 px-6 rounded-lg transition-colors duration-200 text-sm font-semibold', 'bg-blue-600 hover:bg-blue-700 text-white']">
-            Download PDF
-          </button>
+          <button
+  type="button"
+  @click="downloadPdf"
+  class="flex-1 py-3 px-6 rounded-lg bg-black text-black hover:bg-gray-900 text-sm font-semibold"
+>
+  Download PDF
+</button>
+
         </div>
         <p v-if="Object.keys(errors).length" class="text-xs text-red-600 text-center mt-2">
           Vul alle verplichte velden correct in en corrigeer de fouten hierboven.
