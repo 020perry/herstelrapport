@@ -314,7 +314,8 @@ function onFileChange(event, index) {
     const reader = new FileReader();
     reader.onload = function(e) {
       EXIF.getData(file, function() {
-        const orientation = EXIF.getTag(this, "Orientation");
+        let orientation = EXIF.getTag(this, "Orientation");
+        if (!orientation) orientation = 1; // default naar 1 als EXIF ontbreekt!
         fixImageOrientation(e.target.result, orientation, function(fixedBase64) {
           form.acties[index].foto = fixedBase64;
         });
@@ -323,6 +324,8 @@ function onFileChange(event, index) {
     reader.readAsDataURL(file);
   }
 }
+
+
 
 function fixImageOrientation(base64, orientation, callback) {
   const img = new window.Image();
