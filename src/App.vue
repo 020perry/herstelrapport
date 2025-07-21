@@ -97,7 +97,7 @@
           <button
   type="button"
   @click="addAction"
-  class="mt-6 w-full bg-black text-black py-3 px-4 rounded-lg hover:bg-gray-900 text-sm font-semibold"
+  class="mt-6 w-full bg-black text-white py-3 px-4 rounded-lg hover:bg-gray-900 text-sm font-semibold"
 >
   + Herstelactie toevoegen
 </button>
@@ -147,7 +147,7 @@
           <button
   type="button"
   @click="downloadPdf"
-  class="flex-1 py-3 px-6 rounded-lg bg-black text-black hover:bg-gray-900 text-sm font-semibold"
+  class="flex-1 py-3 px-6 rounded-lg bg-black text-white hover:bg-gray-900 text-sm font-semibold"
 >
   Download PDF
 </button>
