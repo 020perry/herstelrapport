@@ -355,130 +355,171 @@ onMounted(async () => {
   signatureCanvas.value.addEventListener('touchend', () => { signatureState.value++ })
 })
 
-async function drawImageAutoSize(doc, base64img, x, y, maxWidth = 120, maxHeight = 80) {
+async function drawImageAutoSize(
+  doc,
+  base64img,
+  x,
+  y,
+  targetWidth = 120,   // Vul zoveel mogelijk de pagina, past goed met marges
+  targetHeight = 80
+) {
   return new Promise(resolve => {
     const img = new window.Image();
     img.onload = function () {
-      let ratio = Math.min(maxWidth / img.width, maxHeight / img.height);
-      let width = img.width * ratio;
-      let height = img.height * ratio;
-      if (y + height > 280) {
-        doc.addPage();
-        y = 20;
+      const imgRatio = img.width / img.height;
+      const targetRatio = targetWidth / targetHeight;
+      let drawWidth, drawHeight, offsetX, offsetY;
+
+      if (imgRatio > targetRatio) {
+        drawHeight = targetHeight;
+        drawWidth = img.width * (targetHeight / img.height);
+        offsetX = x - (drawWidth - targetWidth) / 2;
+        offsetY = y;
+      } else {
+        drawWidth = targetWidth;
+        drawHeight = img.height * (targetWidth / img.width);
+        offsetX = x;
+        offsetY = y - (drawHeight - targetHeight) / 2;
       }
-      doc.addImage(base64img, 'JPEG', x, y, width, height);
-      resolve({ yNew: y + height + 5, height });
-    }
+      doc.addImage(base64img, 'JPEG', offsetX, offsetY, drawWidth, drawHeight);
+      resolve({ yNew: y + targetHeight + 8, height: targetHeight });
+    };
     img.src = base64img;
   });
 }
 
+
+
+
 async function downloadPdf() {
   if (!validateForm()) {
-    scrollToFirstError()
-    return
+    scrollToFirstError();
+    return;
   }
   try {
-    const { default: jsPDF } = await import('jspdf')
-    const doc = new jsPDF()
-    let y = 16
+    const { default: jsPDF } = await import('jspdf');
+    const doc = new jsPDF();
+    let y = 16;
 
-    // HERSTELVERKLARING - vaste tekst
-    doc.setFontSize(11)
+    // Headertekst
+    doc.setFontSize(11);
     const herstelTekst = [
       'Indien alle te herstellen punten zijn uitgevoerd kan onderstaande herstelverklaring worden ingevuld en ondertekend.',
       'De verklaring kunt u vervolgens samen met een kopie van het inspectierapport opsturen naar uw verzekeraar.',
       'Alle gebreken geclassificeerd als I (A) en II (B) fouten, zoals vastgelegd in het inspectierapport vakkundig zijn hersteld.',
       'De werkzaamheden zijn uitgevoerd conform de geldende NEN 1010 installatievoorschriften.'
-    ]
+    ];
     herstelTekst.forEach(t => {
-      const lines = doc.splitTextToSize(t, 180)
-      doc.text(lines, 14, y)
-      y += lines.length * 5
-    })
-    y += 8
+      const lines = doc.splitTextToSize(t, 180);
+      doc.text(lines, 14, y);
+      y += lines.length * 5;
+    });
+    y += 8;
 
     // Inspectierapport
-    doc.setFontSize(14)
-    doc.setTextColor(0, 128, 0)
-    doc.text('Inspectierapport:', 14, y)
-    doc.setFontSize(11)
-    doc.setTextColor(0, 0, 0)
-    y += 6
-    doc.text(`Naam rapport: ${form.rapportNaam}`, 14, y)
-    y += 6
-    doc.text(`Datum uitvoer: ${form.rapportDatum}`, 14, y)
-    y += 10
+    doc.setFontSize(14);
+    doc.setTextColor(0, 128, 0);
+    doc.text('Inspectierapport:', 14, y);
+    doc.setFontSize(11);
+    doc.setTextColor(0, 0, 0);
+    y += 6;
+    doc.text(`Naam rapport: ${form.rapportNaam}`, 14, y); y += 6;
+    doc.text(`Datum uitvoer: ${form.rapportDatum}`, 14, y); y += 10;
 
     // Installatiebedrijf
-    doc.setFontSize(14)
-    doc.setTextColor(0, 128, 0)
-    doc.text('Installatiebedrijf:', 14, y)
-    doc.setFontSize(11)
-    doc.setTextColor(0, 0, 0)
-    y += 6
-    doc.text(`Bedrijfsnaam: ${form.bedrijf}`, 14, y); y += 6
-    doc.text(`Adres: ${form.adres}`, 14, y); y += 6
-    doc.text(`Postcode/plaats: ${form.postcode} ${form.plaats}`, 14, y); y += 6
-    doc.text(`Telefoonnummer: ${form.telefoon}`, 14, y); y += 10
+    doc.setFontSize(14);
+    doc.setTextColor(0, 128, 0);
+    doc.text('Installatiebedrijf:', 14, y);
+    doc.setFontSize(11);
+    doc.setTextColor(0, 0, 0);
+    y += 6;
+    doc.text(`Bedrijfsnaam: ${form.bedrijf}`, 14, y); y += 6;
+    doc.text(`Adres: ${form.adres}`, 14, y); y += 6;
+    doc.text(`Postcode/plaats: ${form.postcode} ${form.plaats}`, 14, y); y += 6;
+    doc.text(`Telefoonnummer: ${form.telefoon}`, 14, y); y += 10;
 
     // Herstelacties
-    doc.setFontSize(14)
-    doc.setTextColor(0, 100, 200)
-    doc.text('Herstelacties', 14, y); y += 8
-    doc.setFontSize(11)
-    doc.setTextColor(0, 0, 0)
+    doc.setFontSize(14);
+    doc.setTextColor(0, 100, 200);
+    doc.text('Herstelacties', 14, y); y += 8;
+    doc.setFontSize(11);
+    doc.setTextColor(0, 0, 0);
+
+    // Voor elke actie: tekst + foto, met paginawissel waar nodig
     for (let idx = 0; idx < form.acties.length; idx++) {
       const actie = form.acties[idx];
-      if (y > 240) { doc.addPage(); y = 20 }
-      doc.setFont(undefined, "bold");
-      doc.text(`Actie ${idx + 1}:`, 14, y); y += 6
-      doc.setFont(undefined, "normal");
-      const lines = doc.splitTextToSize(actie.omschrijving, 180)
-      doc.text(lines, 14, y); y += lines.length * 5
-      if (actie.foto) {
-        const result = await drawImageAutoSize(doc, actie.foto, 14, y, 120, 80)
-        y = result.yNew;
-      } else {
-        y += 4
+
+      // Bepaal ruimte die nodig is voor tekst + foto (indien foto aanwezig)
+      const lines = doc.splitTextToSize(actie.omschrijving, 180);
+      const textHeight = lines.length * 5 + 6;
+      const photoHeight = actie.foto ? 80 + 8 : 0;
+      const roomNeeded = textHeight + photoHeight + 8;
+
+      if (y + roomNeeded > 265) { // Houd voldoende ondermarge (A4)
+        doc.addPage();
+        y = 20;
       }
-      y += 2
+
+      doc.setFont(undefined, "bold");
+      doc.text(`Actie ${idx + 1}:`, 14, y); y += 6;
+      doc.setFont(undefined, "normal");
+      doc.text(lines, 14, y); y += lines.length * 5 + 2;
+
+      if (actie.foto) {
+        // Extra check voor veiligheid, maar meestal is bovenstaande voldoende
+        if (y + 80 + 8 > 265) {
+          doc.addPage();
+          y = 20;
+        }
+        const result = await drawImageAutoSize(doc, actie.foto, 14, y, 120, 80);
+        y = result.yNew;
+      }
+      y += 4;
     }
 
-    // Ondertekening
-    doc.setFontSize(14)
-    doc.setTextColor(0, 128, 0)
-    doc.text('Ondertekening:', 14, y)
-    doc.setFontSize(11)
-    doc.setTextColor(0, 0, 0)
-    y += 6
-    doc.text(`Plaats: ${form.ondertekenPlaats}`, 14, y); y += 6
-    doc.text(`Naam: ${form.ondertekenNaam}`, 14, y); y += 6
-    doc.text(`Functie: ${form.ondertekenFunctie}`, 14, y); y += 6
-    doc.text(`Datum: ${form.ondertekenDatum}`, 14, y); y += 8
-    doc.text('Handtekening:', 14, y); y += 5
+    // Ondertekening (ook met ruimte-check!)
+    const ondertekenHoogte = 6 * 4 + 35 + 25; // velden + handtekening + marge
+    if (y + ondertekenHoogte > 265) {
+      doc.addPage();
+      y = 20;
+    }
+
+    doc.setFontSize(14);
+    doc.setTextColor(0, 128, 0);
+    doc.text('Ondertekening:', 14, y);
+    doc.setFontSize(11);
+    doc.setTextColor(0, 0, 0);
+    y += 6;
+    doc.text(`Plaats: ${form.ondertekenPlaats}`, 14, y); y += 6;
+    doc.text(`Naam: ${form.ondertekenNaam}`, 14, y); y += 6;
+    doc.text(`Functie: ${form.ondertekenFunctie}`, 14, y); y += 6;
+    doc.text(`Datum: ${form.ondertekenDatum}`, 14, y); y += 8;
+    doc.text('Handtekening:', 14, y); y += 5;
 
     if (signaturePad && !signaturePad.isEmpty()) {
       try {
-        const signatureData = signaturePad.toDataURL('image/jpeg')
-        doc.addImage(signatureData, 'JPEG', 14, y, 60, 30)
+        const signatureData = signaturePad.toDataURL('image/jpeg');
+        doc.addImage(signatureData, 'JPEG', 14, y, 60, 30);
+        y += 35;
       } catch (e) {
-        doc.text('⚠️ Fout bij het toevoegen van de handtekening', 14, y)
+        doc.text('⚠️ Fout bij het toevoegen van de handtekening', 14, y);
+        y += 12;
       }
-      y += 35
     } else {
-      y += 10
+      y += 12;
     }
 
-    const now = new Date()
-    const dateStr = now.toISOString().split('T')[0]
-    const safeBedrijf = form.bedrijf ? form.bedrijf.replace(/[^a-zA-Z0-9]/g, '_') : 'herstelverklaring'
-    const filename = `herstelverklaring_${safeBedrijf}_${dateStr}.pdf`
-    doc.save(filename)
+    // Opslaan
+    const now = new Date();
+    const dateStr = now.toISOString().split('T')[0];
+    const safeBedrijf = form.bedrijf ? form.bedrijf.replace(/[^a-zA-Z0-9]/g, '_') : 'herstelverklaring';
+    const filename = `herstelverklaring_${safeBedrijf}_${dateStr}.pdf`;
+    doc.save(filename);
   } catch (e) {
-    alert('Er is iets misgegaan bij het genereren van de PDF:\n' + e)
-    console.error('PDF fout:', e)
+    alert('Er is iets misgegaan bij het genereren van de PDF:\n' + e);
+    console.error('PDF fout:', e);
   }
 }
+
 </script>
 
