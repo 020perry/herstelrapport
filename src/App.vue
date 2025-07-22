@@ -83,7 +83,7 @@
                       </div>
                     </label>
                     <div v-if="actie.foto" class="relative">
-                      <img :src="actie.foto" alt="Preview" class="max-h-32 mx-auto rounded" />
+                      <img :src="actie.foto"  :id="`preview_foto_${index}`" alt="Preview" class="max-h-32 mx-auto rounded" />
                       <button type="button" @click="removePhoto(index)" class="absolute top-1 right-1 bg-white rounded-full w-5 h-5 flex items-center justify-center text-xs text-gray-600 hover:text-red-600 shadow">×</button>
                     </div>
                   </div>
@@ -356,38 +356,36 @@ onMounted(async () => {
   signatureCanvas.value.addEventListener('touchend', () => { signatureState.value++ })
 })
 
-async function drawImageAutoSize(
-  doc,
-  base64img,
-  x,
-  y,
-  targetWidth = 120,   // Vul zoveel mogelijk de pagina, past goed met marges
-  targetHeight = 80
-) {
+async function drawImageAutoSize(doc, base64img, x, y, targetWidth = 120, targetHeight = 80, previewId = null) {
   return new Promise(resolve => {
     const img = new window.Image();
     img.onload = function () {
-      const imgRatio = img.width / img.height;
-      const targetRatio = targetWidth / targetHeight;
-      let drawWidth, drawHeight, offsetX, offsetY;
-
-      if (imgRatio > targetRatio) {
-        drawHeight = targetHeight;
-        drawWidth = img.width * (targetHeight / img.height);
-        offsetX = x - (drawWidth - targetWidth) / 2;
-        offsetY = y;
-      } else {
-        drawWidth = targetWidth;
-        drawHeight = img.height * (targetWidth / img.width);
-        offsetX = x;
-        offsetY = y - (drawHeight - targetHeight) / 2;
+      // Haal base64 uit browser-rendered preview <img> als previewId is opgegeven
+      if (previewId) {
+        const imgEl = document.getElementById(previewId);
+        if (imgEl) {
+          const canvas = document.createElement('canvas');
+          canvas.width = imgEl.naturalWidth;
+          canvas.height = imgEl.naturalHeight;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(imgEl, 0, 0);
+          base64img = canvas.toDataURL('image/jpeg');
+        }
       }
+      // Daarna als altijd: schalen naar target
+      const ratio = Math.min(targetWidth / img.width, targetHeight / img.height);
+      const drawWidth = img.width * ratio;
+      const drawHeight = img.height * ratio;
+      let offsetX = x, offsetY = y;
+      if (drawWidth < targetWidth) offsetX += (targetWidth - drawWidth) / 2;
+      if (drawHeight < targetHeight) offsetY += (targetHeight - drawHeight) / 2;
       doc.addImage(base64img, 'JPEG', offsetX, offsetY, drawWidth, drawHeight);
       resolve({ yNew: y + targetHeight + 8, height: targetHeight });
     };
     img.src = base64img;
   });
 }
+
 
 async function downloadPdf() {
   if (!validateForm()) {
@@ -464,14 +462,11 @@ async function downloadPdf() {
       doc.text(lines, 14, y); y += lines.length * 5 + 2;
 
       if (actie.foto) {
-        // Extra check voor veiligheid, maar meestal is bovenstaande voldoende
-        if (y + 80 + 8 > 265) {
-          doc.addPage();
-          y = 20;
-        }
-        const result = await drawImageAutoSize(doc, actie.foto, 14, y, 120, 80);
-        y = result.yNew;
-      }
+  const previewId = `preview_foto_${idx}`;
+  const result = await drawImageAutoSize(doc, actie.foto, 14, y, 120, 80, previewId);
+  y = result.yNew;
+}
+
       y += 4;
     }
 
