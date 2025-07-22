@@ -464,7 +464,9 @@ async function downloadPdf() {
 
       if (actie.foto) {
         const previewId = `fullres_foto_${idx}`;  // Gebruik nu de fullres id!
-        const result = await drawImageAutoSize(doc, actie.foto, 14, y, 120, 80, previewId);
+        //const result = await drawImageAutoSize(doc, actie.foto, 14, y, 120, 80, previewId);
+        const result = await drawImageAutoSize(doc, actie.foto, 10, y, 170, 120, previewId);
+
   y = result.yNew;
 }
 
