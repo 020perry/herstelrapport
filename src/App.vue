@@ -1,4 +1,5 @@
 <template>
+    <Analytics />
   <div class="min-h-screen bg-gray-50 py-8 px-4">
     <div class="max-w-2xl mx-auto">
       <div class="text-center mb-12">
@@ -163,7 +164,7 @@
 
 <script setup>
 import { reactive, ref, onMounted, computed, nextTick, getCurrentInstance } from 'vue'
-
+import { Analytics } from "@vercel/analytics/next"
 function today() {
   const d = new Date()
   return d.toISOString().slice(0, 10)
