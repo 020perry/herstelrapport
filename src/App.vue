@@ -85,6 +85,7 @@
                     </label>
                     <div v-if="actie.foto" class="relative">
                       <img :src="actie.foto"  :id="`preview_foto_${index}`" alt="Preview" class="max-h-32 mx-auto rounded" />
+                      <img v-if="actie.foto" :src="actie.foto" :id="`fullres_foto_${index}`" style="display:none;" />
                       <button type="button" @click="removePhoto(index)" class="absolute top-1 right-1 bg-white rounded-full w-5 h-5 flex items-center justify-center text-xs text-gray-600 hover:text-red-600 shadow">×</button>
                     </div>
                   </div>
@@ -463,8 +464,8 @@ async function downloadPdf() {
       doc.text(lines, 14, y); y += lines.length * 5 + 2;
 
       if (actie.foto) {
-  const previewId = `preview_foto_${idx}`;
-  const result = await drawImageAutoSize(doc, actie.foto, 14, y, 120, 80, previewId);
+        const previewId = `fullres_foto_${idx}`;  // Gebruik nu de fullres id!
+        const result = await drawImageAutoSize(doc, actie.foto, 14, y, 120, 80, previewId);
   y = result.yNew;
 }
 
